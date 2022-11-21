@@ -110,6 +110,7 @@ def picture_sort(src_dir, dest_dir, recursive, move, verbose, rename):
             if not os.path.exists(unsorted_dir):
                 os.makedirs(unsorted_dir)
             shutil.copy2(f, unsorted_dir)
+            files_changed.append(f)
 
     print('')
     print('Total files: ' + str(totalFiles))
