@@ -68,6 +68,10 @@ def picture_sort(src_dir, dest_dir, recursive, move, verbose, rename):
         image_year = str(parse_date(metadata).year)
         image_month = str(parse_date(metadata).strftime('%B'))
         image_time = str(parse_time(metadata).strftime('(%H:%M:%S)'))
+        if not os.path.exists(dest_dir):
+            os.makedirs(dest_dir)
+            if verbose:
+                print('Created directory: ' + dest_dir)
         if not os.path.exists(dest_dir + '/' + image_year):
             os.makedirs(dest_dir + '/' + image_year)
             if verbose:
