@@ -3,6 +3,7 @@ import os
 import imghdr
 import shutil
 import argparse
+import datefinder
 from datetime import datetime
 
 # Exract the exif data from the file
@@ -61,8 +62,12 @@ def picture_sort(src_dir, dest_dir, recursive, move, verbose, rename):
 
         # If the image has no exif data, skip it
         if metadata == '0':
-            files_unsorted.append(f)
-            continue
+            name_in_date = check_for_date_in_file_name(f)
+            if name_in_date is not None:
+                metadata = str(name_in_date)
+            else:
+                files_unsorted.append(f)
+                continue
 
         image_date = str(parse_date(metadata))
         image_year = str(parse_date(metadata).year)
@@ -110,14 +115,25 @@ def picture_sort(src_dir, dest_dir, recursive, move, verbose, rename):
             if not os.path.exists(unsorted_dir):
                 os.makedirs(unsorted_dir)
             shutil.copy2(f, unsorted_dir)
-            files_changed.append(f)
+            
+            
 
     print('')
     print('Total files: ' + str(totalFiles))
     print('Files copied: ' + str(len(files_changed)))
     print('Files skipped: ' + str(len(files_skipped)))
-        
+    print('Files unsorted: ' + str(len(files_unsorted)))
 
+
+def check_for_date_in_file_name(file_name):
+    tempFile = os.path.basename(file_name)
+    #replace any ';' between two two digit numbers with a ':'
+    tempFile = tempFile.replace(';', ':', 2)
+    matches = datefinder.find_dates(tempFile, strict=True)
+    for match in matches:
+        if match.day > 0 and match.month > 0 and match.year > 0:
+            return match.strftime('%Y:%m:%d %H:%M:%S')
+    return None
 
 # Run the script
 def main():
@@ -125,7 +141,7 @@ def main():
     parser = argparse.ArgumentParser(description='Sort a directory of photos by date')
     parser.add_argument('src_dir', type=str, help='The top directory to search for images')
     parser.add_argument('dest_dir', type=str, help='The destination directory to store sorted images')
-    parser.add_argument('-r', '--recursive', action='store_true', help='Recursively search for any images in child directories', default=False)
+    parser.add_argument('-r', '--recursive', action='store_true', help='Recursively search for any images in child directories', default=True)
     parser.add_argument('-m', '--move', action='store_true', help='Modify the original files instead of copying them', default=False)
     parser.add_argument('-v', '--verbose', action='store_true', help='Print image information', default=False)
     parser.add_argument('-rn', '--rename', action='store_true', help='Rename the files to the date they were taken', default=False)
